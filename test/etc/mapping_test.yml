@@ -1,0 +1,51 @@
+mappings:
+  - source: property.id_number
+    destination: property.id
+    default_value: 0
+  - source: property_description
+    destination: property.description.it
+    default_value: ""
+    functions:
+      - module: json_converter.default_conversion
+        function: strip 
+      - module: json_converter.default_conversion
+        function: to_upper
+  - source: property.features.outdoor
+    destination: property.features.outdoor
+    default_value: 0
+  - source: property.media
+    destination: property.media.gallery
+    default_value: 0
+    functions:
+      - module: json_converter.media_conversion
+        function: to_media
+        params:
+          - tag: photo
+          - player: mediaplayer 
+  - source: property.features.indoor.heating_type
+    destination: property.features.indoor.heating_type
+    default_value: ""
+    functions:
+      - module: json_converter.builtin_conversion
+        function: to_node
+        params:
+          - node: value
+  - source: property.features.indoor.elevator
+    destination: property.features.indoor.elevator
+    default_value: False
+    functions:
+      - module: json_converter.builtin_conversion
+        function: to_node
+        params:
+          - node: value
+  - source: property.price
+    destination: property.info.price
+    default_value: 0
+    functions:
+      - module: json_converter.builtin_conversion
+        function: to_int
+  - source: yearOfBuilding
+    destination: year_of_building
+    functions:
+      - module: json_converter.builtin_conversion
+        function: to_int
