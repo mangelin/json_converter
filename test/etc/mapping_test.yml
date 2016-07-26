@@ -42,3 +42,5 @@ mappings:
         function: to_node
         params:
           - node: value
+  - source: listField
+    destination: field.list_field
