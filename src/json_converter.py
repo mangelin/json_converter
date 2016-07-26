@@ -82,6 +82,7 @@ class mapping_node(object):
         self._dest      = node_data.get('destination')
         self._default   = node_data.get('default_value',None)
         self._functions = []
+        self._is_list   = node_data.get('list',False)
 
         if node_data.get('functions'):
             for f in node_data.get('functions'):
@@ -116,6 +117,12 @@ class mapping_node(object):
     @property
     def functions(self):
         return self._functions
+
+    @property
+    def is_list(self):
+        return self._is_list
+    
+
 
     def __str__(self):
         msg =  '''
@@ -307,6 +314,14 @@ class builtin_conversion(object):
 
         return value
 
+    def clean_field(self, value, params):
+        res = ''
+        if type(value) in [str, unicode]:
+            for c in value:
+                if c != '\"':
+                    res += c
+        return res
+
 ##########################################################################
 ######################## DEFAULT CONVERSION CLASS ########################
 ##########################################################################
@@ -345,17 +360,21 @@ class JsonWalker(object):
             return JsonWalker.walkto(node.get(paths[0]),paths[1:])
 
     @staticmethod
-    def addto(node,paths,value,create_not_found=False):
+    def addto(node,paths,value,create_not_found=False,is_list=False):
         if node is None:
             return False
         if len(paths) == 1:
             tmp_n = node.get(paths[0])
-            if  tmp_n is None:
+            if  tmp_n is None and not is_list:
                 node.update({paths[0]:value})
+            elif tmp_n is None and is_list:
+                node.update({paths[0]:[value]})
             else:
                 if type(tmp_n) == list and type(value) == list:
                     for v in value:
                         tmp_n.append(v)
+                elif type(tmp_n) == list:
+                    tmp_n.append(value)
             return True
         else:
             if not node.get(paths[0]):
@@ -363,7 +382,7 @@ class JsonWalker(object):
                     node.update({paths[0]:{}})
                 else:
                     return False
-            return JsonWalker.addto(node.get(paths[0]),paths[1:],value,create_not_found)
+            return JsonWalker.addto(node.get(paths[0]),paths[1:],value,create_not_found,is_list)
 
     @staticmethod
     def remove(node,paths):
@@ -421,7 +440,7 @@ class document_converter(object):
 
         return res_val
 
-    def convert(self, source_doc, destination_doc):
+    def convert(self, source_doc, destination_doc, mapping_empty_fields=True):
         for node in self.nodes:
             self._logger.debug(' source : %s'%(node.sourcel))
             source_val = JsonWalker.walkto(source_doc, node.sourcel)
@@ -438,9 +457,10 @@ class document_converter(object):
                 if destination_val is None:
                     destination_val = node.default
 
-            if not JsonWalker.addto(destination_doc,node.destinationl, destination_val,create_not_found=True):
-                self._logger.error(" Unable to map data : %s | %s"%(node.destination, destination_val))
-                return False
+            if (destination_val is not None and destination_val != "") or mapping_empty_fields:
+                if not JsonWalker.addto(destination_doc,node.destinationl, destination_val,create_not_found=True,is_list=node.is_list):
+                    self._logger.error(" Unable to map data : %s | %s"%(node.destination, destination_val))
+                    return False
 
         return True
 
