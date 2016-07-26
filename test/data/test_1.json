@@ -1,0 +1,18 @@
+{
+    "intField" : 12345,
+    "stringField" : "   TestName   ",
+    "decimalField" : 10.5,
+    "listField" : [
+        {
+            "type" : "image",
+            "file" : "1.jpg"
+        },
+        {
+            "type" : "image",
+            "file" : "2.jpg"
+        }
+    ],
+    "boolField" : false,
+    "toListField" : "value1",
+    "toListField2" : "value2"
+}
