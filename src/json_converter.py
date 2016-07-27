@@ -8,6 +8,14 @@ import json
 from docopt import docopt
 
 
+_cache = {}
+def _add_to_cache(name, value):
+    _cache.update({name:value})
+
+def _get_from_cache(name):
+    return _cache.get(name,None)
+    
+
 ##########################################################################
 ############################ HELPER FUNCTIONS ############################
 ##########################################################################
@@ -172,6 +180,13 @@ class builtin_conversion(object):
                     d.update({p.value:value})        
         return d
 
+    def to_plain_node(self, value, params=[]):
+        d = {}
+        for p in params:
+            if p.name == 'node':
+                d.update({p.value:value})        
+        return d
+
     def to_bool_node(self, value, params=[]):
         res = {}
         if type(value) == list:
@@ -321,6 +336,44 @@ class builtin_conversion(object):
                 if c != '\"':
                     res += c
         return res
+
+    def add_to_cache(self, value, params):
+        for p in params:
+            if p.name == 'name':
+                _add_to_cache(p.value, value)
+        return value
+
+    def mult(self, value, params):
+        for p in params:
+            if p.name == 'value':
+                return value * p.value
+            if p.name == 'name':
+                v = _get_from_cache(p.value)
+                if v:
+                    return value * v
+        return value
+
+    def sum(self, value, params):
+        for p in params:
+            if p.name == 'value':
+                return value + p.value
+            if p.name == 'name':
+                v = _get_from_cache(p.value)
+                if v:
+                    return value + v
+        return value
+
+    def sub(self, value, params):
+        for p in params:
+            if p.name == 'value':
+                return value - p.value
+            if p.name == 'name':
+                v = _get_from_cache(p.value)
+                if v:
+                    return value - v
+        return value
+
+
 
 ##########################################################################
 ######################## DEFAULT CONVERSION CLASS ########################
