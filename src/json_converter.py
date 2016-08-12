@@ -197,6 +197,25 @@ class builtin_conversion(object):
 
         return res
 
+    def evaluate(self, value, params):
+        print '----> Evaluate : ',params
+        print '----> Evaluate : ',value
+
+        for p in params:
+            if p.name == 'pass':
+                check_value = p.value
+            if p.name == 'value':
+                pass_value = p.value
+
+        if check_value is None:
+            return None
+
+        if value == check_value:
+            print '-----> Evaluate : ',pass_value
+            return pass_value
+
+        return None
+
     def add_tag(self, value, params):
         for p in params:
             if type(value) == dict:
@@ -373,6 +392,16 @@ class builtin_conversion(object):
                     return value - v
         return value
 
+    def pack(self, value, params):
+        if type(value) == dict:
+            pack_vals = []
+            packed_val = ''
+            for p in params:
+                pack_vals.append(value.get(p.value))
+                packed_val = ' '.join(pack_vals)
+            return packed_val
+        return value
+
 
 
 ##########################################################################
@@ -476,6 +505,13 @@ class document_converter(object):
 
         return res
 
+    def destination(self, source):
+        for node in self.mappings:
+            n = mapping_node(node)
+            if n.source == source:
+                return n.destination
+        return None
+
     def apply_function(self, value, module_name, function_name, params=[]):
         module = module_name.split('.')
         func_class = dynamic_import(module[0],module[1])
@@ -510,7 +546,11 @@ class document_converter(object):
                 if destination_val is None:
                     destination_val = node.default
 
-            if (destination_val is not None and destination_val != "") or mapping_empty_fields:
+                if destination_val is None:
+                    break
+
+            #if (destination_val is not None and destination_val != "") or mapping_empty_fields:
+            if (destination_val is not None and destination_val != "") or (mapping_empty_fields and destination_val is not None):
                 if not JsonWalker.addto(destination_doc,node.destinationl, destination_val,create_not_found=True,is_list=node.is_list):
                     self._logger.error(" Unable to map data : %s | %s"%(node.destination, destination_val))
                     return False
