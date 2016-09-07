@@ -8,5 +8,5 @@ setup(name='JsonConverter',
       author='Matteo Angelino',
       author_email='matteo.angelino@gmail.com',
       url='https://github.com/mangelin/json_converter',
-      packages=['json_converter'],
+      packages=['src'],
      )
